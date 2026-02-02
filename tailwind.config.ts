@@ -9,7 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#8b5cf6", // 专门调配的参考图里的“基佬紫”
+        // 定义参考图里的高级紫和背景灰
+        primary: "#7c3aed", 
+        bgLight: "#f9fafb",
       },
     },
   },

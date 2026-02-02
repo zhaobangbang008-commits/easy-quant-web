@@ -2,15 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #f9fafb; /* 整个页面的浅灰背景 */
+/* 强制全屏高度，防止布局塌陷 */
+html, body {
+  height: 100%;
+  margin: 0;
+  background-color: #ffffff;
 }
 
-/* 隐藏滚动条但保留功能，更美观 */
+/* 优化滚动条，让它像参考图一样细腻 */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #e5e7eb;
-  border-radius: 10px;
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
