@@ -9,16 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // 参考图里的那个高级紫色
-        brand: "#7c3aed", 
-        // 背景色不是纯白，是极淡的灰，这样白色卡片才能浮出来
-        bgBase: "#f8fafc", 
+        // 图中那种标志性的紫色
+        brand: "#5850ec",
+        // 背景不是纯白，是极淡的灰蓝
+        sidebarBg: "#f9fafb",
       },
-      boxShadow: {
-        // 这种阴影叫“弥散光”，看起来很软，没有黑边
-        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.06)',
-        'floating': '0 10px 40px -10px rgba(124, 58, 237, 0.15)',
-      }
+      borderRadius: {
+        // 图中的卡片圆角非常大，很润
+        'xl': '12px',
+        '2xl': '16px',
+      },
     },
   },
   plugins: [],
