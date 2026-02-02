@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+// 初始化 Supabase 客户端
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -9,73 +10,60 @@ export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
-    // 真正的逻辑：不再输出任何“(此处...)”这种废话
-    let replyText = "";
-    
-    if (message.includes("双均线")) {
-        // 针对策略请求，直接给出专业回复
-        replyText = `### 🧐 策略逻辑确认
-收到。双均线策略（Dual Moving Average Crossover）是趋势跟踪的经典模型。
-核心逻辑如下：
-1. **买入信号**：短期均线（MA5）上穿长期均线（MA10），形成金叉。
-2. **卖出信号**：短期均线（MA5）下穿长期均线（MA10），形成死叉。
+    // 1. 调用 DeepSeek API
+    // 提示：请确保你在 .env.local 中配置了 DEEPSEEK_API_KEY
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat", // 或者使用 "deepseek-reasoner" 如果你想用 R1 模型
+        messages: [
+          {
+            role: "system",
+            content: `你现在的名字是“散户救星”。你是一名顶级的量化交易导师，专门为 A 股散户提供 PTrade 和 QMT 的策略指导。
+            你的回答必须遵循以下原则：
+            1. **交互感**：不要一上来就甩代码。先分析用户的策略意图，指出该策略在当前 A 股环境（如震荡市或牛市）下的优缺点。
+            2. **专业性**：代码必须符合 PTrade 或 QMT 的标准 API 格式，并包含详尽的中文注释。
+            3. **启发性**：在给出代码后，主动提出一个优化建议（例如加入 ATR 止损、量价过滤或 RSI 指标）。
+            4. **禁止废话**：不要输出“好的”、“没问题”等口头禅，直接进入深度分析。`
+          },
+          { role: "user", content: message }
+        ],
+        stream: false,
+        temperature: 0.7 // 保持一定的创造力，使语气更自然
+      })
+    });
 
----
+    const data = await response.json();
 
-### 💻 PTrade 策略代码
-\`\`\`python
-def initialize(context):
-    # 设定标的：以贵州茅台为例
-    g.security = '600519.SS'
-    # 设定均线周期
-    g.short_len = 5
-    g.long_len = 10
-    set_universe([g.security])
-
-def handle_data(context, data):
-    # 获取历史收盘价
-    hist = get_history(g.long_len + 2, '1d', 'close', g.security)
-    
-    # 计算均线
-    ma_short = hist.iloc[-g.short_len:].mean()
-    ma_long = hist.iloc[-g.long_len:].mean()
-    
-    # 获取持仓
-    position = context.portfolio.positions[g.security].amount
-    
-    # 金叉买入
-    if ma_short > ma_long and position == 0:
-        order_target_percent(g.security, 1.0)
-        log.info("金叉触发，全仓买入")
-        
-    # 死叉卖出
-    elif ma_short < ma_long and position > 0:
-        order_target(g.security, 0)
-        log.info("死叉触发，清仓止盈")
-\`\`\`
-
-### 💡 风险提示
-该策略在震荡市中可能会频繁触发假信号，导致手续费磨损。建议加入 **ATR 波动率过滤** 或 **RSI 指标** 进行辅助判断。`;
-    } else {
-        // 通用回复，引导性强，但绝不显示内部指令
-        replyText = `收到指令：**"${message}"**。
-
-作为 X-TradeBrain 量化助手，为了给您提供准确的代码，我需要确认以下细节：
-
-1. **运行环境**：您是在 **回测** 阶段还是准备 **实盘**？
-2. **交易频率**：是 **日线 (Daily)** 级别还是 **分钟 (Minute)** 级别？
-
-您可以直接告诉我，例如：“我要写一个基于日线的实盘策略”。`;
+    // 错误处理：如果 DeepSeek 接口报错
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error('DeepSeek API 响应异常');
     }
 
-    // 存入数据库
-    await supabase.from('messages').insert([
-        { role: 'ai', content: replyText }
+    const replyText = data.choices[0].message.content;
+
+    // 2. 将 AI 的回复存入 Supabase 数据库
+    // 注意：这里建议在前端 handleSend 时已经存了 user 消息，后端只存 AI 消息
+    const { error: supabaseError } = await supabase.from('messages').insert([
+      { role: 'ai', content: replyText }
     ]);
 
+    if (supabaseError) {
+      console.error('Supabase 存储失败:', supabaseError);
+    }
+
+    // 3. 返回给前端
     return NextResponse.json({ reply: replyText });
 
-  } catch (error) {
-    return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('路由报错:', error);
+    return NextResponse.json(
+      { reply: "【散户救星消息】：连接 DeepSeek 失败，请检查 API Key 或网络状况。" }, 
+      { status: 500 }
+    );
   }
 }
