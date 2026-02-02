@@ -17,12 +17,10 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 滚动到底部
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 加载历史记录
   useEffect(() => {
     const fetchHistory = async () => {
       const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
@@ -33,12 +31,10 @@ export default function Home() {
     fetchHistory();
   }, []);
 
-  // 监听消息更新，自动滚动
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // 发送消息
   const handleSend = async () => {
     if (!input.trim()) return;
     const userMsg: Message = { role: 'user', content: input };
@@ -56,113 +52,118 @@ export default function Home() {
       });
       const data = await response.json();
       const aiMsg: Message = { role: 'ai', content: data.reply || "AI 暂时没有回复..." };
-      
       setMessages(prev => [...prev, aiMsg]);
       await supabase.from('messages').insert([{ role: 'ai', content: aiMsg.content }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'ai', content: "网络请求出错，请检查连接。" }]);
+      setMessages(prev => [...prev, { role: 'ai', content: "网络请求出错" }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 清空历史（新建对话）
-  const handleNewChat = async () => {
-    if (confirm("确定要开启新对话吗？当前屏幕将被清空。")) {
-       setMessages([]);
-       // 如果你想物理删除数据库记录，取消下面这行的注释：
-       // await supabase.from('messages').delete().neq('id', 0);
-    }
-  };
-
   return (
-    // 最外层容器：Flex布局，全屏高度，不可滚动
-    <div className="flex h-screen bg-white font-sans text-slate-800 overflow-hidden">
+    <div className="flex h-screen font-sans text-slate-800 overflow-hidden">
       
-      {/* --- 左侧侧边栏 (参考图样式) --- */}
-      <div className="w-[260px] bg-slate-50 border-r border-slate-200 flex flex-col shrink-0">
-        {/* 顶部按钮区 */}
-        <div className="p-4 space-y-3">
-          {/* 获得积分 (装饰) */}
-          <div className="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium flex justify-between items-center shadow-sm cursor-pointer hover:bg-indigo-700 transition">
-             <span>✨ 获得积分</span>
-             <span className="bg-indigo-500 px-2 rounded text-xs">120</span>
-          </div>
-          
-          {/* 新建对话按钮 */}
+      {/* --- 左侧侧边栏 (深色高级感) --- */}
+      <div className="w-[280px] bg-sidebar-gradient text-slate-300 flex flex-col shrink-0 shadow-xl z-20">
+        
+        {/* Logo 区域 */}
+        <div className="h-20 flex items-center px-6">
+           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 mr-3">
+             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+           </div>
+           <div>
+             <div className="font-bold text-lg text-white tracking-wide">X-TradeBrain</div>
+             <div className="text-[10px] text-slate-400">Pro Edition</div>
+           </div>
+        </div>
+
+        {/* 新建对话按钮 (深色背景上的亮色按钮) */}
+        <div className="px-5 mb-6">
           <button 
-            onClick={handleNewChat}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-sm text-slate-700 shadow-sm"
+            onClick={() => { if(confirm('确定要清空当前屏幕吗？')) setMessages([]) }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 backdrop-blur-sm group"
           >
-            <span className="text-xl leading-none text-indigo-600">+</span>
-            <span>新建对话</span>
+            <span className="text-xl font-light group-hover:scale-110 transition-transform">+</span>
+            <span className="text-sm font-medium">New Chat</span>
           </button>
         </div>
 
-        {/* 历史记录列表区 */}
-        <div className="flex-1 overflow-y-auto px-2 space-y-1">
-          <div className="px-3 py-2 text-xs font-semibold text-slate-400">历史记录</div>
-          {/* 假数据演示布局 */}
-          <div className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer truncate">
+        {/* 历史记录 */}
+        <div className="flex-1 overflow-y-auto px-4 space-y-1">
+          <div className="px-2 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">History</div>
+          <div className="px-3 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-lg cursor-pointer transition-colors truncate">
             双均线策略编写...
           </div>
-          <div className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer truncate">
-            API 接口查询报错
+          <div className="px-3 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white rounded-lg cursor-pointer transition-colors truncate">
+            API 接口调试记录
           </div>
         </div>
 
-        {/* 底部用户区 */}
-        <div className="p-4 border-t border-slate-200">
+        {/* 底部用户栏 */}
+        <div className="p-4 bg-black/20 backdrop-blur-md">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xs">U</div>
-             <div className="text-sm font-medium text-slate-700">用户 8826</div>
+             <div className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 p-[2px]">
+               <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xs text-white">U</div>
+             </div>
+             <div className="text-sm">
+                <div className="font-medium text-white">User 8826</div>
+                <div className="text-xs text-emerald-400">● Online</div>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* --- 右侧主界面 --- */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white relative">
-        {/* 顶部标题栏 */}
-        <div className="h-14 border-b border-slate-100 flex items-center justify-between px-6 bg-white shrink-0 z-10">
-           <div className="text-lg font-bold text-slate-800">X-TradeBrain <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded ml-2 font-normal">V1.12.8</span></div>
+      {/* --- 右侧主界面 (浅色背景 + 玻璃质感) --- */}
+      <div className="flex-1 flex flex-col relative bg-[#f8fafc]">
+        
+        {/* 顶部标题栏 (透明玻璃) */}
+        <div className="h-16 flex items-center justify-between px-8 bg-white/70 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
+           <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
+             <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+             AI Model: <span className="text-slate-800 font-bold">DeepSeek V3</span>
+           </div>
+           <div className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-medium border border-indigo-100">
+             Token Balance: 120
+           </div>
         </div>
 
-        {/* 聊天滚动区 */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+        {/* 聊天内容区 */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 scroll-smooth pb-32">
            {messages.length === 0 ? (
-             // 空状态：显示欢迎页
-             <div className="h-full flex flex-col items-center justify-center -mt-20 space-y-6">
-                <h1 className="text-4xl font-bold text-slate-800">X-TradeBrain</h1>
-                <p className="text-slate-500 bg-slate-50 px-4 py-1 rounded-full text-sm border border-slate-100">
-                  已接入 DeepSeek & 云端数据库
-                </p>
+             // 空状态 (带一点色彩装饰)
+             <div className="h-full flex flex-col items-center justify-center -mt-10">
+                <div className="w-24 h-24 bg-gradient-to-tr from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                   <svg className="w-12 h-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                </div>
+                <h1 className="text-3xl font-bold text-slate-800 mb-2">How can I help you trade?</h1>
+                <p className="text-slate-500 mb-8">Professional Quantitative Strategy Assistant</p>
+                
                 <div className="grid grid-cols-2 gap-4 w-full max-w-2xl px-6">
-                   <div onClick={() => setInput("帮我写一个双均线策略")} className="border border-slate-200 p-4 rounded-xl hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all bg-white">
-                      <div className="font-bold text-slate-700 mb-1">📝 编写策略</div>
-                      <div className="text-xs text-slate-400">写一个双均线策略，金叉买入死叉卖出...</div>
-                   </div>
-                   <div onClick={() => setInput("如何获取账户持仓？")} className="border border-slate-200 p-4 rounded-xl hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all bg-white">
-                      <div className="font-bold text-slate-700 mb-1">🔍 代码调试</div>
-                      <div className="text-xs text-slate-400">查询 API 文档，解决代码报错...</div>
-                   </div>
+                   <button onClick={() => setInput("帮我写一个双均线策略")} className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all text-left group">
+                      <div className="text-indigo-600 mb-2 group-hover:scale-110 transition-transform origin-left">⚡️</div>
+                      <div className="font-bold text-slate-700">编写策略</div>
+                      <div className="text-xs text-slate-400 mt-1">均线交叉、MACD...</div>
+                   </button>
+                   <button onClick={() => setInput("如何查询账户资金？")} className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all text-left group">
+                      <div className="text-purple-600 mb-2 group-hover:scale-110 transition-transform origin-left">🔍</div>
+                      <div className="font-bold text-slate-700">API 查询</div>
+                      <div className="text-xs text-slate-400 mt-1">ContextInfo 函数用法...</div>
+                   </button>
                 </div>
              </div>
            ) : (
-             // 消息列表
+             // 消息气泡
              messages.map((msg, index) => (
-               <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {/* 头像 */}
-                  <div className={`w-8 h-8 rounded shrink-0 flex items-center justify-center text-xs font-bold ${
-                    msg.role === 'user' ? 'bg-indigo-600 text-white order-2' : 'bg-green-600 text-white order-1'
-                  }`}>
-                    {msg.role === 'user' ? 'Me' : 'AI'}
-                  </div>
+               <div key={index} className={`flex gap-4 max-w-4xl mx-auto ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.role === 'ai' && (
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-lg shadow-indigo-200 mt-1">Ai</div>
+                  )}
                   
-                  {/* 气泡 */}
-                  <div className={`max-w-[85%] rounded-lg p-4 text-sm leading-relaxed shadow-sm ${
+                  <div className={`rounded-2xl px-6 py-4 text-[15px] leading-relaxed shadow-sm max-w-[85%] ${
                     msg.role === 'user' 
-                    ? 'bg-indigo-50 border border-indigo-100 text-slate-800 order-1' 
-                    : 'bg-white border border-slate-200 text-slate-800 order-2'
+                    ? 'bg-brand-gradient text-white rounded-tr-sm shadow-indigo-200' // 用户气泡用漂亮的渐变
+                    : 'bg-white border border-slate-100 text-slate-700 rounded-tl-sm'
                   }`}>
                     {msg.role === 'user' ? (
                       <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -176,13 +177,13 @@ export default function Home() {
                                 style={oneDark}
                                 language={match[1]}
                                 PreTag="div"
-                                customStyle={{ margin: '1em 0', borderRadius: '8px' }}
+                                customStyle={{ margin: '1em 0', borderRadius: '12px', fontSize: '13px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                                 {...props}
                               >
                                 {String(children).replace(/\n$/, '')}
                               </SyntaxHighlighter>
                             ) : (
-                              <code className={`${className} bg-slate-100 text-slate-600 px-1 py-0.5 rounded font-mono text-xs`} {...props}>
+                              <code className={`${className} bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono text-xs font-bold`} {...props}>
                                 {children}
                               </code>
                             )
@@ -196,13 +197,16 @@ export default function Home() {
                </div>
              ))
            )}
-           {isLoading && <div className="text-center text-xs text-slate-400">AI 正在思考中...</div>}
            <div ref={messagesEndRef} />
         </div>
 
-        {/* 底部输入区 */}
-        <div className="p-6 bg-white border-t border-slate-100 shrink-0">
-           <div className="max-w-4xl mx-auto relative border border-slate-300 rounded-xl shadow-sm bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+        {/* --- 底部输入区 (玻璃悬浮) --- */}
+        <div className="absolute bottom-6 left-6 right-6 z-20">
+           <div className="max-w-3xl mx-auto relative">
+             {/* 毛玻璃背景层 */}
+             <div className="absolute inset-0 bg-white/80 backdrop-blur-xl rounded-2xl shadow-glass border border-white/20"></div>
+             
+             {/* 输入框本体 */}
              <textarea 
                value={input}
                onChange={(e) => setInput(e.target.value)}
@@ -212,21 +216,22 @@ export default function Home() {
                    handleSend();
                  }
                }}
-               placeholder="请输入您的策略想法，Shift+Enter 换行..."
-               className="w-full p-4 bg-transparent resize-none focus:outline-none min-h-[60px] max-h-[150px] text-sm"
+               placeholder="Tell me your strategy idea..."
+               className="relative w-full pl-6 pr-14 py-4 bg-transparent resize-none focus:outline-none text-slate-700 placeholder:text-slate-400 min-h-[60px] max-h-[150px] rounded-2xl z-10"
                rows={1}
              />
              <button 
                onClick={handleSend}
                disabled={!input.trim() || isLoading}
-               className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all ${
-                 input.trim() ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+               className={`absolute bottom-3 right-3 p-2 rounded-xl transition-all z-20 ${
+                 input.trim() 
+                   ? 'bg-brand-gradient text-white shadow-lg shadow-indigo-300 hover:scale-105' 
+                   : 'bg-slate-200 text-slate-400'
                }`}
              >
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
              </button>
            </div>
-           <p className="text-xs text-center text-slate-400 mt-2">AI 生成代码仅供参考，不构成投资建议</p>
         </div>
 
       </div>
