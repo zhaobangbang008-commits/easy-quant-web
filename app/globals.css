@@ -3,19 +3,6 @@
 @tailwind utilities;
 
 body {
-  /* 背景不再是纯白，而是极淡的灰蓝色，护眼又高级 */
-  background-color: #f3f4f6;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* 滚动条 */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
+  background-color: #ffffff;
+  color: #000000;
 }
