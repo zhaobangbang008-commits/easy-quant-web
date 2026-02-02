@@ -9,21 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // 你的品牌主色
-        brand: {
-          light: '#8b5cf6', // 浅紫
-          DEFAULT: '#7c3aed', // 标准紫
-          dark: '#6d28d9', // 深紫
-        }
+        // 图2那种深紫色背景
+        deepPurple: "#1e1b4b", // 午夜蓝紫
+        vibrantPurple: "#7c3aed", // 亮紫色按钮
       },
       backgroundImage: {
-        // 定义一个“午夜深蓝”的侧边栏渐变，比纯黑更有质感
-        'sidebar-gradient': 'linear-gradient(to bottom, #0f172a, #1e1b4b)', 
-        // 按钮的流光渐变
-        'brand-gradient': 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+        // 头部的大渐变
+        'hero-gradient': 'linear-gradient(to bottom, #2e1065, #0f172a)',
+        // 按钮流光
+        'btn-gradient': 'linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%)',
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+        'glow': '0 0 20px rgba(124, 58, 237, 0.3)', // 紫色发光效果
       }
     },
   },
