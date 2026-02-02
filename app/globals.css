@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 body {
-  background-color: #ffffff;
-  color: #000000;
+  /* 整个网页背景是淡灰，为了衬托白卡片 */
+  background-color: #f8fafc; 
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 隐藏滚动条，保持干净 */
+::-webkit-scrollbar {
+  width: 0px;
 }
