@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css"; 
 
 export const metadata: Metadata = {
-  title: "Easy Quant",
+  title: "牢A救星",
   description: "AI Quantitative Trading Platform",
 };
 
