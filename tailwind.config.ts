@@ -1,29 +1,15 @@
-import type { Config } from "tailwindcss";
-
+// tailwind.config.ts
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
   theme: {
     extend: {
       colors: {
-        // 图2那种深紫色背景
-        deepPurple: "#1e1b4b", // 午夜蓝紫
-        vibrantPurple: "#7c3aed", // 亮紫色按钮
-      },
-      backgroundImage: {
-        // 头部的大渐变
-        'hero-gradient': 'linear-gradient(to bottom, #2e1065, #0f172a)',
-        // 按钮流光
-        'btn-gradient': 'linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%)',
+        'brand-purple': '#7c3aed', // 主紫色按钮
+        'brand-light-purple': '#f5f3ff', // 浅紫色背景
+        'sidebar-bg': '#f9fafb', // 极浅灰侧边栏
       },
       boxShadow: {
-        'glow': '0 0 20px rgba(124, 58, 237, 0.3)', // 紫色发光效果
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       }
     },
   },
-  plugins: [],
-};
-export default config;
+}

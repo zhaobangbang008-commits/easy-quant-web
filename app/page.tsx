@@ -35,8 +35,6 @@ export default function Home() {
     setInput('');
     setIsLoading(true);
 
-    await supabase.from('messages').insert([{ role: 'user', content: userMsg.content }]);
-
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -46,7 +44,6 @@ export default function Home() {
       const data = await response.json();
       const aiMsg: Message = { role: 'ai', content: data.reply };
       setMessages(prev => [...prev, aiMsg]);
-      await supabase.from('messages').insert([{ role: 'ai', content: aiMsg.content }]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -55,155 +52,158 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen w-full font-sans">
+    <div className="flex h-screen w-full bg-white font-sans text-slate-900 overflow-hidden">
       
-      {/* --- 左侧侧边栏 (深色) --- */}
-      <div className="w-[260px] bg-[#0f172a] text-slate-300 flex flex-col shrink-0 border-r border-white/5">
-        <div className="h-16 flex items-center px-6 font-bold text-white text-lg tracking-wider border-b border-white/5">
-          X-TB <span className="text-xs bg-indigo-600 px-1.5 rounded ml-2">PRO</span>
-        </div>
-        
-        <div className="p-4">
-            <button onClick={() => {if(confirm('清空会话？')) setMessages([])}} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-medium transition-all shadow-glow">
-                + 新建对话
-            </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-2 space-y-1">
-            <div className="px-3 py-2 text-xs font-bold text-slate-500">HISTORY</div>
-            <div className="px-3 py-2 hover:bg-white/5 rounded cursor-pointer truncate text-sm">双均线策略...</div>
-            <div className="px-3 py-2 hover:bg-white/5 rounded cursor-pointer truncate text-sm">API 报错查询...</div>
+      {/* --- 左侧侧边栏 --- */}
+      <div className="w-[280px] bg-[#f9fafb] border-r border-slate-200 flex flex-col shrink-0">
+        {/* 积分区域 */}
+        <div className="p-4 space-y-2 mt-2">
+          <div className="flex justify-between items-center px-2">
+            <span className="text-sm font-medium text-slate-500">✨ 积分</span>
+            <span className="text-brand-purple font-bold text-violet-600">120</span>
+          </div>
+          <button className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-xl py-2 text-sm font-medium transition-all shadow-sm">
+            获得积分
+          </button>
+          <button className="w-full bg-white border border-slate-200 text-slate-600 rounded-xl py-2 text-sm font-medium hover:bg-slate-50 transition-all">
+            积分规则
+          </button>
         </div>
 
-        <div className="p-4 border-t border-white/5">
-            <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">U</div>
-                <div className="text-sm text-white">User 8826</div>
-            </div>
+        <div className="px-4 py-2 mt-4">
+           <button onClick={() => setMessages([])} className="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl py-2.5 text-sm flex items-center justify-center gap-2 transition-all">
+             <span className="text-lg">+</span> 新建对话
+           </button>
+        </div>
+
+        {/* 历史记录 */}
+        <div className="flex-1 overflow-y-auto px-4 mt-4 space-y-1">
+          <div className="text-xs font-semibold text-slate-400 mb-2 px-2">历史记录</div>
+          <div className="px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-200/50 rounded-lg cursor-pointer truncate">双均线策略逻辑分析</div>
+          <div className="px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-200/50 rounded-lg cursor-pointer truncate">PTrade 回测报错处理</div>
+        </div>
+
+        {/* 用户信息 */}
+        <div className="p-4 border-t border-slate-100">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px]">👤</div>
+            <div className="text-sm font-medium text-slate-700">191****8826</div>
+          </div>
         </div>
       </div>
 
       {/* --- 右侧主区域 --- */}
-      <div className="flex-1 flex flex-col relative bg-[#f8fafc]">
+      <div className="flex-1 flex flex-col relative bg-white">
         
-        {/* 顶部大横幅 (仿图2的深紫色头部) */}
-        {messages.length === 0 && (
-            <div className="h-[280px] bg-hero-gradient flex flex-col items-center justify-center text-white relative overflow-hidden shrink-0">
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                <h1 className="text-4xl font-bold mb-2 z-10 drop-shadow-lg">X-TradeBrain</h1>
-                <p className="text-indigo-200 text-sm z-10">生成式 AI 编程助手 V1.12.8</p>
-                <div className="flex gap-4 mt-6 z-10">
-                    <span className="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-xs">🚀 选股 & 信息整理工具</span>
-                    <span className="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-xs">📈 今日股市</span>
-                </div>
-            </div>
-        )}
-
-        {/* 只有在聊天时才显示的顶部栏 */}
-        {messages.length > 0 && (
-             <div className="h-16 border-b bg-white flex items-center px-6 justify-between shrink-0 shadow-sm z-10">
-                <div className="font-bold text-slate-800">X-TradeBrain <span className="text-xs text-slate-400 font-normal">AI Assistant</span></div>
-                <button onClick={() => setMessages([])} className="text-xs text-red-500 hover:underline">清空</button>
-             </div>
-        )}
-
-        {/* 内容滚动区 */}
-        <div className="flex-1 overflow-y-auto relative scroll-smooth">
-            {messages.length === 0 ? (
-                // --- 首页状态 (卡片布局) ---
-                <div className="max-w-4xl mx-auto px-6 -mt-8 relative z-20">
-                    {/* 巨大的输入框 (仿图2) */}
-                    <div className="bg-white rounded-2xl shadow-xl p-2 border border-indigo-100 flex flex-col mb-10">
-                        <textarea 
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => {if(e.key === 'Enter' && !e.shiftKey) {e.preventDefault(); handleSend();}}}
-                            placeholder="请输入您的策略想法..."
-                            className="w-full p-4 min-h-[100px] resize-none focus:outline-none text-slate-700 placeholder:text-slate-400 text-lg"
-                        />
-                        <div className="flex justify-between items-center px-4 pb-2">
-                             <div className="flex gap-2 text-xs text-slate-400 border px-2 py-1 rounded bg-slate-50">
-                                PTrade 国金版 ▾
-                             </div>
-                             <button onClick={handleSend} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 transition-all">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                             </button>
-                        </div>
-                    </div>
-
-                    {/* 底部卡片 (仿图2) */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div onClick={() => setInput("写一个双均线策略")} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:border-indigo-200">
-                            <div className="font-bold text-slate-800 mb-2">⚡️ 编写策略</div>
-                            <p className="text-sm text-slate-500">编写一个双均线策略：当五日均线高于十日均线时买入...</p>
-                        </div>
-                        <div onClick={() => setInput("如何获取订单详情？")} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all hover:border-indigo-200">
-                            <div className="font-bold text-slate-800 mb-2">📚 API 相关问题</div>
-                            <p className="text-sm text-slate-500">如何获取订单详情？函数用法查询...</p>
-                        </div>
-                        {/* 装饰性空卡片 */}
-                        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm opacity-60">
-                             <div className="font-bold text-slate-800 mb-2">✨ 策略示例</div>
-                             <p className="text-sm text-slate-500">查看更多高分策略...</p>
-                        </div>
-                        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm opacity-60">
-                             <div className="font-bold text-slate-800 mb-2">💬 社区互动</div>
-                             <p className="text-sm text-slate-500">与其他量化爱好者交流...</p>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                // --- 聊天状态 ---
-                <div className="p-4 md:p-8 space-y-6 pb-32">
-                    {messages.map((msg, idx) => (
-                        <div key={idx} className={`flex gap-4 max-w-4xl mx-auto ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                            {msg.role === 'ai' && <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0">AI</div>}
-                            
-                            <div className={`rounded-2xl p-4 shadow-sm max-w-[85%] ${
-                                msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-100 text-slate-800'
-                            }`}>
-                                {msg.role === 'user' ? (
-                                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                                ) : (
-                                    <ReactMarkdown components={{
-                                        code({node, inline, className, children, ...props}: any) {
-                                            const match = /language-(\w+)/.exec(className || '')
-                                            return !inline && match ? (
-                                                <SyntaxHighlighter style={oneDark} language={match[1]} PreTag="div" customStyle={{borderRadius: '8px', fontSize: '13px'}} {...props}>
-                                                    {String(children).replace(/\n$/, '')}
-                                                </SyntaxHighlighter>
-                                            ) : (<code className="bg-slate-100 px-1 rounded text-pink-500 text-xs" {...props}>{children}</code>)
-                                        }
-                                    }}>{msg.content}</ReactMarkdown>
-                                )}
-                            </div>
-
-                            {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">Me</div>}
-                        </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                </div>
-            )}
+        {/* 顶部紫色公告栏 */}
+        <div className="h-10 bg-violet-600 text-white text-xs flex items-center justify-center gap-2 px-4 text-center">
+          📢 欢迎行业伙伴交流合作机会（点击这里加微信备注“合作”） <span className="opacity-70 ml-2">✕</span>
         </div>
 
-        {/* 聊天模式下的底部输入框 (固定在底部) */}
-        {messages.length > 0 && (
-            <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-                <div className="max-w-3xl mx-auto relative">
-                    <input 
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {if(e.key === 'Enter') handleSend()}}
-                        placeholder="继续输入..."
-                        className="w-full bg-slate-100 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <button onClick={handleSend} className="absolute right-2 top-1.5 bg-indigo-600 text-white rounded-full p-1.5">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                    </button>
+        <div className="flex-1 overflow-y-auto flex flex-col items-center relative">
+          
+          {messages.length === 0 ? (
+            /* --- 首页状态 --- */
+            <div className="w-full max-w-3xl mt-20 px-6">
+              <div className="text-center mb-10">
+                <div className="flex justify-center gap-3 mb-6">
+                  <span className="px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-xs text-slate-500 hover:bg-slate-100 cursor-pointer">🚀 选股 & 信息整理工具</span>
+                  <span className="px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-xs text-slate-500 hover:bg-slate-100 cursor-pointer">📈 今日股市</span>
                 </div>
+                <h1 className="text-5xl font-bold text-slate-800 mb-2 tracking-tight">X-TradeBrain</h1>
+                <p className="text-slate-400 text-lg font-light">生成式 AI 编程助手</p>
+                <span className="inline-block mt-2 px-2 py-0.5 bg-slate-100 text-[10px] text-slate-400 rounded">V1.12.8</span>
+              </div>
+
+              {/* 输入框卡片 */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-4 mb-4 relative transition-all focus-within:border-violet-300">
+                <textarea 
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {if(e.key === 'Enter' && !e.shiftKey) {e.preventDefault(); handleSend();}}}
+                  placeholder="请输入您的策略想法..."
+                  className="w-full min-h-[140px] p-2 resize-none focus:outline-none text-slate-700 placeholder:text-slate-300 text-base"
+                />
+                <div className="flex justify-between items-center mt-2 pt-3 border-t border-slate-50">
+                  <div className="flex items-center gap-4">
+                     <span className="text-[10px] text-slate-300">💡 回车键发送，Shift+回车键换行</span>
+                     <select className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded px-2 py-1 outline-none">
+                        <option>PTrade 国金版</option>
+                        <option>QMT 极简版</option>
+                     </select>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <button className="text-slate-400 hover:text-slate-600 text-xl">📎</button>
+                    <button onClick={handleSend} className="bg-slate-200 text-white rounded-full p-2 hover:bg-violet-600 transition-all group">
+                       <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-center text-[10px] text-slate-300 mb-12 italic">AI 生成的代码仅作为技术参考和研究学习，请勿用于任何实际生产、商业用途或投资</p>
+
+              {/* 底部示例 */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-violet-200 transition-all cursor-pointer">
+                  <div className="font-bold text-slate-700 mb-1 text-sm">✨ 编写策略</div>
+                  <p className="text-xs text-slate-400">编写一个双均线策略：当五日均线高于十日均线时买入...</p>
+                </div>
+                <div className="p-5 rounded-xl border border-slate-100 bg-slate-50/50 hover:border-violet-200 transition-all cursor-pointer">
+                  <div className="font-bold text-slate-700 mb-1 text-sm">📚 API 相关问题</div>
+                  <p className="text-xs text-slate-400">如何获取订单详情？函数用法查询...</p>
+                </div>
+              </div>
             </div>
+          ) : (
+            /* --- 聊天状态 --- */
+            <div className="w-full max-w-4xl p-6 pb-32 space-y-8">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                   {msg.role === 'ai' && <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>}
+                   <div className={`max-w-[85%] p-4 rounded-2xl ${msg.role === 'user' ? 'bg-violet-600 text-white shadow-lg' : 'bg-slate-50 border border-slate-100 text-slate-800'}`}>
+                      <ReactMarkdown components={{
+                        code({node, inline, className, children, ...props}: any) {
+                          const match = /language-(\w+)/.exec(className || '')
+                          return !inline && match ? (
+                            <SyntaxHighlighter style={oneDark} language={match[1]} PreTag="div" customStyle={{borderRadius: '12px', fontSize: '12px'}} {...props}>
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          ) : (<code className="bg-slate-200/50 px-1 rounded text-pink-500 font-mono text-sm" {...props}>{children}</code>)
+                        }
+                      }}>{msg.content}</ReactMarkdown>
+                   </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* 聊天模式下的悬浮输入框 */}
+        {messages.length > 0 && (
+          <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent">
+            <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-full shadow-lg flex items-center px-4 py-2">
+              <input 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {if(e.key === 'Enter') handleSend()}}
+                placeholder="继续追问..."
+                className="flex-1 bg-transparent px-4 py-2 focus:outline-none text-sm"
+              />
+              <button onClick={handleSend} className="bg-violet-600 text-white p-2 rounded-full hover:scale-105 transition-transform">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              </button>
+            </div>
+          </div>
         )}
 
+        {/* 右下角交流群按钮 */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <button className="bg-brand-purple bg-violet-600 text-white px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-violet-700 transition-all">
+             <span className="text-lg">💬</span> 交流群
+          </button>
+        </div>
       </div>
     </div>
   );
